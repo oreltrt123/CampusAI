@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { db, auth } from '@/lib/firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Message {
@@ -17,18 +16,34 @@ interface ChatProps {
 }
 
 export default function ChatInterface({ chatId, post }: ChatProps) {
-  const [user] = useAuthState(auth);
+  const [user] = useState(supabase.auth.getUser());
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) return;
-    const chatRef = doc(db, `chats/${user.uid}_${chatId}`);
-    const unsubscribe = onSnapshot(chatRef, (snap) => {
-      setMessages(snap.data()?.messages || []);
-    });
-    return () => unsubscribe();
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('chats')
+        .select('messages')
+        .eq('id', `${user.id}_${chatId}`)
+        .single();
+      if (data) setMessages(data.messages || []);
+      if (error) console.error('Error fetching messages:', error);
+    };
+    fetchMessages();
+
+    const channel = supabase
+      .channel(`chat:${user.id}_${chatId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chats', filter: `id=eq.${user.id}_${chatId}` }, (payload) => {
+        setMessages(payload.new.messages || []);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, chatId]);
 
   useEffect(() => {
@@ -45,13 +60,15 @@ export default function ChatInterface({ chatId, post }: ChatProps) {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input, post, chatId, userId: user.uid }),
+        body: JSON.stringify({ prompt: input, post, chatId, userId: user.id }),
       });
       if (!res.ok) throw new Error('שגיאת API בצ’אט');
       const { response } = await res.json();
       const updatedMessages = [...newMessages, { user: false, text: response }];
       setMessages(updatedMessages);
-      await setDoc(doc(db, `chats/${user.uid}_${chatId}`), { messages: updatedMessages });
+      await supabase
+        .from('chats')
+        .upsert({ id: `${user.id}_${chatId}`, messages: updatedMessages });
     } catch (err: any) {
       alert(`שגיאה בצ’אט: ${err.message}`);
     }
@@ -69,6 +86,7 @@ export default function ChatInterface({ chatId, post }: ChatProps) {
         <div ref={messagesEndRef} />
       </div>
       <div className="flex mt-2">
+        <button onClick={sendMessage} className="bg-blue-600 text-white p-2 rounded-r">שלח</button>
         <input
           type="text"
           value={input}
@@ -78,7 +96,6 @@ export default function ChatInterface({ chatId, post }: ChatProps) {
           dir="rtl"
           onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
         />
-        <button onClick={sendMessage} className="bg-blue-600 text-white p-2 rounded-r">שלח</button>
       </div>
     </div>
   );

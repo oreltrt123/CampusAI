@@ -12,16 +12,31 @@ export async function GET() {
 - summary: סיכום של 200 מילים בעברית
 - quote: ציטוט מרכזי של דובר
 - sources: מערך של 2-3 קישורים חדשותיים אמיתיים (למשל: haaretz.com, timesofisrael.com)
-- imageUrl: URL של תמונה רלוונטית (Unsplash) שתתאים לנושא
+- imageUrl: URL ישיר של תמונה רלוונטית מאתר Unsplash שתתאים לנושא, וודא שהוא URL תקין לתמונה כמו https://images.unsplash.com/photo-1567306301408-9b74779a11af?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb. חובה לכל פוסט תמונה ייחודית ורלוונטית.
 - videoUrl: URL של וידאו YouTube רלוונטי (חיפוש: Israel Knesset [topic])
-החזר רק JSON תקין של מערך אובייקטים.`;
+- category: בחר קטגוריה אחת מהרשימה הבאה שמתאימה לנושא הפוסט: פוליטיקה, כלכלה, ביטחון, יחסי חוץ, חברה, חינוך, בריאות, סביבה, משפט, טכנולוגיה, תרבות, ספורט, דת, רווחה, תחבורה
+החזר רק JSON תקין של מערך אובייקטים, ללא טקסט נוסף מחוץ ל-JSON. וודא שה-JSON תקין לחלוטין כדי למנוע שגיאות פרסינג.`;
 
     let jsonStr = await callGemini(prompt);
     jsonStr = jsonStr.replace(/```json|```/g, '').trim();
-    const posts = JSON.parse(jsonStr);
 
-    return NextResponse.json({ posts });
+    // Additional validation and fixing for JSON
+    try {
+      const posts = JSON.parse(jsonStr);
+      // Ensure every post has an imageUrl
+      posts.forEach((post: any) => {
+        if (!post.imageUrl || !post.imageUrl.startsWith('https://images.unsplash.com/')) {
+          post.imageUrl = 'https://images.unsplash.com/photo-1542281286-9e0a16bb7366?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb'; // Fallback relevant image
+        }
+      });
+      return NextResponse.json({ posts });
+    } catch (parseErr) {
+      console.error('JSON Parse Error:', parseErr, 'Raw Response:', jsonStr);
+      // Optional: Retry logic here if needed
+      throw parseErr;
+    }
   } catch (err) {
+    console.error(err);
     return NextResponse.json(
       { error: (err as Error).message },
       { status: 500 }

@@ -3,6 +3,7 @@
 import ChatInterface from '@/components/ChatInterface';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Header from '@/components/Header';
 
 export default function ChatPage() {
   const params = useParams();
@@ -19,5 +20,10 @@ export default function ChatPage() {
 
   if (!post) return <p>Loading chat...</p>;
 
-  return <ChatInterface chatId={chatId} post={post} />;
+  return(
+  <div>
+    <Header />
+    <div className='relative top-10'><ChatInterface chatId={chatId} post={post} /></div>
+  </div>
+  );
 }

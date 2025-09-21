@@ -117,7 +117,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">איך עובד KnessetAI</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">איך עובד CampusAI</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               המערכת המתקדמת שלנו מנטרת, מנתחת ומסכמת חדשות פוליטיות 24/7
             </p>
@@ -162,9 +162,9 @@ export default function LandingPage() {
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">מוכן להתעדכן?</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            הצטרפו לאלפי קוראים שסומכים על KnessetAI לקבלת חדשות פוליטיות מדויקות ומעודכנות
+            הצטרפו לאלפי קוראים שסומכים על CampusAI לקבלת חדשות פוליטיות מדויקות ומעודכנות
           </p>
-          <Link href="/auth/register">
+          <Link href="/signup">
             <Button size="lg" className="text-lg px-8">
               צור חשבון חינמי <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -178,7 +178,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Brain className="h-6 w-6 text-secondary" />
-              <span className="text-lg font-semibold text-primary">KnessetAI</span>
+              <span className="text-lg font-semibold text-primary">CampusAI</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
               <Link href="/privacy" className="hover:text-foreground transition-colors">
@@ -193,7 +193,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            <p>© 2024 KnessetAI. מופעל על ידי Gemini AI. כל הזכויות שמורות.</p>
+            <p>© 2024 CampusAI. מופעל על ידי Gemini AI. כל הזכויות שמורות.</p>
           </div>
         </div>
       </footer>

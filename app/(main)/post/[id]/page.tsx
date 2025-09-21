@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
 import { useRouter, useParams } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,12 +17,20 @@ interface Post {
 export default function PostPage() {
   const params = useParams();
   const id = params.id as string;
-  const [user] = useAuthState(auth);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const [prompt, setPrompt] = useState('');
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     fetch('/api/generate-news')
@@ -42,7 +49,6 @@ export default function PostPage() {
       });
   }, [id]);
 
-  if (!user) return <p className="text-red-600">Please login.</p>;
   if (loading) return <p>Loading post...</p>;
   if (error || !post) return <p className="text-red-600">Error: {error || 'Post not found'}</p>;
 
